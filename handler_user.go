@@ -6,15 +6,15 @@ import (
 )
 
 func handlerLogin(s *state, cmd command) error {
-	if len(cmd.args) < 1 {
+	if len(cmd.Args) < 1 {
 		return errors.New("login handler expects a username argument")  
 	}
 
-	err := s.cfg.SetUser(cmd.args[0])
+	err := s.cfg.SetUser(cmd.Args[0])
 	if err != nil {
 		return fmt.Errorf("new username could not be set. error: %v", err)  
 	}
 
-	fmt.Printf("User %s has been successfully set to the config\n", cmd.args[0])
+	fmt.Printf("User %s has been successfully set to the config\n", cmd.Args[0])
 	return nil
 }
