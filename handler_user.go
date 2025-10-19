@@ -60,3 +60,5 @@ func handlerRegister(s *state, cmd command) error {
 	fmt.Printf("User %s has been successfully created\n", name)
 	return nil
 }
+
+

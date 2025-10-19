@@ -25,3 +25,7 @@ func (c *commands) register(name string, f func(*state, command) error) {
 	c.registeredCommands[name] = f
 }
 
+func (c *commands) reset(name string, f func(*state, command) error) {
+	c.registeredCommands[name] = f
+}
+
