@@ -23,7 +23,6 @@ func main() {
 		log.Fatalf("error reading config file: %v", err)
 	}
 
-	// fmt.Printf("Read config: %+v\n", cfg)
 
 	db, err := sql.Open("postgres", cfg.DBURL)
 	if err != nil {
@@ -46,6 +45,7 @@ func main() {
 	cmds.register("login", handlerLogin)
 	cmds.register("register", handlerRegister)
 	cmds.register("reset", handlerReset)
+	cmds.register("users", handlerListUsers)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("\nat least a command name arg is needed")
@@ -59,13 +59,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	
-	// cfg, err = config.Read()
-	// if err != nil {
-	// 	log.Fatalf("Error reading config file: %v", err)
-	// 	return
-	// }
-	//
-	// fmt.Printf("Final config file: %+v\n", cfg)
 }
