@@ -6,7 +6,7 @@ import (
 )
 
 func handlerReset(s *state, cmd command) error {
-	if len(cmd.Args) > 0 {
+	if len(cmd.Args) != 0 {
 		return fmt.Errorf("usage: %v", cmd.Name)  
 	}
 

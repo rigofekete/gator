@@ -11,7 +11,7 @@ import (
 
 
 func handlerLogin(s *state, cmd command) error {
-	if len(cmd.Args) < 1 {
+	if len(cmd.Args) != 1 {
 		return fmt.Errorf("usage: %v <name>", cmd.Name)  
 	}
 
@@ -32,7 +32,7 @@ func handlerLogin(s *state, cmd command) error {
 }
 
 func handlerRegister(s *state, cmd command) error {
-	if len(cmd.Args) < 1 {
+	if len(cmd.Args) != 1 {
 		return fmt.Errorf("usage: %v <name>", cmd.Name)  
 	}
 	
@@ -64,7 +64,7 @@ func handlerRegister(s *state, cmd command) error {
 
 
 func handlerListUsers(s *state, cmd command) error {
-	if len(cmd.Args) > 0 {
+	if len(cmd.Args) != 0 {
 		return fmt.Errorf("usage: %v", cmd.Name)
 	}
 
