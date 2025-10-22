@@ -50,6 +50,7 @@ func main() {
 	cmds.register("addfeed", handlerAddFeed)
 	cmds.register("feeds", handlerGetFeeds)
 	cmds.register("follow", handlerFollowFeed)
+	cmds.register("following", handlerFollowing)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("\nat least a command name arg is needed")
