@@ -1,10 +1,11 @@
 package main
 
 import (
-	// "fmt"
 	"log"
 	"os"
 	"database/sql"
+	"context"
+	"fmt"
 
 
 	"github.com/rigofekete/gator/internal/config"
@@ -23,7 +24,6 @@ func main() {
 		log.Fatalf("error reading config file: %v", err)
 	}
 
-
 	db, err := sql.Open("postgres", cfg.DBURL)
 	if err != nil {
 		log.Fatalf("error opening SQL database. Error: %v", err) 
@@ -37,7 +37,6 @@ func main() {
 		cfg: &cfg,
 	}
 
-
 	cmds := commands{
 		registeredCommands: map[string]func(*state, command) error{},
 	}
@@ -47,10 +46,10 @@ func main() {
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerListUsers)
 	cmds.register("agg", handlerAgg)
-	cmds.register("addfeed", handlerAddFeed)
+	cmds.register("addfeed", middlewareLoggedIn(handlerAddFeed))
+	cmds.register("follow", middlewareLoggedIn(handlerFollowFeed))
+	cmds.register("following", middlewareLoggedIn(handlerFollowing))
 	cmds.register("feeds", handlerGetFeeds)
-	cmds.register("follow", handlerFollowFeed)
-	cmds.register("following", handlerFollowing)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("\nat least a command name arg is needed")
@@ -65,3 +64,18 @@ func main() {
 		log.Fatal(err)
 	}
 }
+
+
+func middlewareLoggedIn(handler func(*state, command, database.User) error) func(*state, command) error {	
+	return func(s *state, cmd command) error {
+		user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+		if err != nil {
+			return fmt.Errorf("user not found: %w", err)
+		}
+
+		return handler(s, cmd, user)
+	}
+
+}
+
+

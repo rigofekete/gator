@@ -10,7 +10,36 @@ import (
 )
 
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerGetFeeds(s* state, cmd command) error {
+	if len(cmd.Args) != 0 {
+		return fmt.Errorf("usage: %v", cmd.Name)
+	}
+
+	feeds, err := s.db.GetFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("error getting feeds: %w", err) 
+	}
+
+	if len(feeds) == 0 {
+		fmt.Println("No feeds registered")
+		return nil
+	}
+	
+	fmt.Println("Current feeds: ")
+fmt.Println()
+	for _, feed := range feeds {
+		user, err := s.db.GetUserByID(context.Background(), feed.UserID)
+		if err != nil {
+			return fmt.Errorf("Error getting user name from users table: %w", err)
+		}
+		printFeed(feed, user)
+		fmt.Println()
+	}
+	return nil
+}
+
+
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) != 2 {
 		return fmt.Errorf("usage: %v <feedName> <feedURL>", cmd.Name)  
 	}
@@ -18,8 +47,6 @@ func handlerAddFeed(s *state, cmd command) error {
 	feedName := cmd.Args[0] 
 	feedURL := cmd.Args[1] 
 
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	
 	feedParams := database.AddFeedParams{
 		ID: 		uuid.New(),
 		CreatedAt: 	time.Now().UTC(),
@@ -58,46 +85,14 @@ func handlerAddFeed(s *state, cmd command) error {
 	return nil 
 }
 
-func handlerGetFeeds(s* state, cmd command) error {
-	if len(cmd.Args) != 0 {
-		return fmt.Errorf("usage: %v", cmd.Name)
-	}
 
-	feeds, err := s.db.GetFeeds(context.Background())
-	if err != nil {
-		return fmt.Errorf("error getting feeds: %w", err) 
-	}
-
-	if len(feeds) == 0 {
-		fmt.Println("No feeds registered")
-		return nil
-	}
-	
-	fmt.Println("Current feeds: ")
-fmt.Println()
-	for _, feed := range feeds {
-		user, err := s.db.GetUserByID(context.Background(), feed.UserID)
-		if err != nil {
-			return fmt.Errorf("Error getting user name from users table: %w", err)
-		}
-		printFeed(feed, user)
-		fmt.Println()
-	}
-	return nil
-}
-
-func handlerFollowFeed(s* state, cmd command) error {
+func handlerFollowFeed(s* state, cmd command, user database.User) error {
 	if len(cmd.Args) != 1 {
 		return fmt.Errorf("usage: %v <URL>", cmd.Name)
 	}
 
 
 	url := cmd.Args[0]
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("user not found: %w", err)
-	}
-
 	feed, err := s.db.GetFeedByURL(context.Background(), url) 
 	if err != nil {
 		return fmt.Errorf("feed not found. %w", err)
@@ -124,14 +119,9 @@ func handlerFollowFeed(s* state, cmd command) error {
 	return nil
 }
 
-func handlerFollowing(s* state, cmd command) error {
+func handlerFollowing(s* state, cmd command, user database.User) error {
 	if len(cmd.Args) != 0 {
 		return fmt.Errorf("usage: %v", cmd.Name)
-	}
-
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("error getting user: %w", err)
 	}
 
 	follows, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
