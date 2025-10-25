@@ -21,14 +21,14 @@ func (cfg *Config) SetUser(userName string) error {
 }
 
 func GetConfigFilePath() (string, error) {
-	dir, err := os.UserHomeDir()
+	home, err := os.UserHomeDir()
 
 	if err != nil {
 		fmt.Println("home directory could not be found\n")
 		return "", err
 	}
 
-	path := filepath.Join(dir, configFileName)
+	path := filepath.Join(home, ".config", "gator", configFileName)
 	return path, nil
 }
 
