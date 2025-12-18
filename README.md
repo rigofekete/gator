@@ -25,7 +25,7 @@ go install .
 
 ## Database Setup
 
-You need a running PostgreSQL instance and an empty database. the app manages tables/migrations, not database creatons.
+You need a running PostgreSQL instance and an empty database. The app manages tables/migrations, not database creations.
 
 ### 1 - Create the gator database
 
