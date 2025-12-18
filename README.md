@@ -62,7 +62,7 @@ From the terminal, migrate the database:
 goose "postgres://USER:PASSWORD@localhost:5432/gator" up
 ```
 
-The, run:
+Then, run:
 
 ```bash
 gator reset
