@@ -56,7 +56,13 @@ Add the database url (replace fields with your own Postgres user and password):
 
 ### 2 - Apply database schema
 
-from the terminal, run:
+From the terminal, migrate the database:
+
+```
+goose "postgres://USER:PASSWORD@localhost:5432/gator" up
+```
+
+The, run:
 
 ```bash
 gator reset
@@ -66,7 +72,7 @@ gator reset
 
 Create a user:
 ```bash
-gator user add <username>
+gator register <username>
 ```
 
 List users:
