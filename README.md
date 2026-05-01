@@ -24,7 +24,7 @@ git clone https://github.com/rigofekete/gator
 go install .
 ```
 
-**Note:** With `go install` the binary becomes globally available, you can run it from anywhere in the terminal by name.
+> **Note:** With `go install` the binary (`gator`) becomes globally available, you can run it from anywhere in the terminal by name.
 
 ## Database Setup
 
@@ -67,13 +67,7 @@ Change directory to sql/schema and migrate the database:
 goose postgres "postgres://USER:PASSWORD@localhost:5432/gator" up
 ```
 
-Build the tool:
-
-```bash
-go build .
-```
-
-Then, run:
+Then, reset the database to apply the clean schema:
 
 ```bash
 gator reset
