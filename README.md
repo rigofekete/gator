@@ -18,9 +18,7 @@ gator is a Go CLI that aggregates RSS feeds into a PostgreSQL database. It suppo
 
 ```bash
 git clone https://github.com/rigofekete/gator
-```
-
-```bash
+cd gator
 go install .
 ```
 
