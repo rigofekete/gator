@@ -56,10 +56,15 @@ Add the database url (replace fields with your own Postgres user and password):
 
 ### 2 - Apply database schema
 
-From the terminal, migrate the database:
+Change directory to sql/schema and migrate the database:
 
 ```
-goose "postgres://USER:PASSWORD@localhost:5432/gator" up
+goose postgres "postgres://USER:PASSWORD@localhost:5432/gator" up
+```
+
+Build the tool:
+```bash
+go build .
 ```
 
 Then, run:
