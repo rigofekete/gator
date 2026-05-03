@@ -164,17 +164,16 @@ func (m tuiModel) inputView() tea.View {
 	var b strings.Builder
 	b.WriteString("\n\n")
 	// TODO: rename and restyle this cursorStyle
-	b.WriteString("  " + styles.CursorStyle.Render(m.selected.label) + "\n\n")
+	b.WriteString(styles.CursorStyle.Render(m.selected.label) + "\n")
 	var inputText string
 	if m.inputBuf == "" {
-		inputText = styles.PlaceholderStyle.Render("username")
+		inputText = styles.AppStyle.Render(styles.PlaceholderStyle.Render("username"))
 	} else {
-		inputText = styles.InputStyle.Render(m.inputBuf)
+		inputText = styles.AppStyle.Render(styles.InputStyle.Render(m.inputBuf))
 	}
 	b.WriteString(fmt.Sprintf("%s\n\n", inputText))
 	return tea.NewView(lipgloss.Place(m.width, m.height,
-		lipgloss.Center, lipgloss.Center,
-		styles.AppStyle.Render(b.String())))
+		lipgloss.Center, lipgloss.Center, b.String()))
 }
 
 func (m tuiModel) resultView() tea.View {
