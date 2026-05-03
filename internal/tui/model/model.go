@@ -9,6 +9,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/rigofekete/gator/internal/config"
 	"github.com/rigofekete/gator/internal/tui/styles"
 )
 
@@ -41,13 +42,14 @@ type tuiModel struct {
 	selected  *tuiCmd
 	collected []string
 
-	resultMsg string
-	resultErr bool
-
+	resultMsg      string
+	resultErr      bool
 	resultColorIdx int
 
 	width  int
 	height int
+
+	config *config.Config
 }
 
 func (m tuiModel) Init() tea.Cmd {
@@ -192,11 +194,12 @@ func (m tuiModel) resultView() tea.View {
 	return tea.NewView(lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, b.String()))
 }
 
-func RunTUI() {
+func RunTUI(cfg *config.Config) {
 	fmt.Print("\033[2J\033[H")
 	m := tuiModel{
 		cmdsList: allCommands(),
 		view:     "menu",
+		config:   cfg,
 	}
 	p := tea.NewProgram(m)
 	if _, err := p.Run(); err != nil {
