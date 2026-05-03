@@ -12,17 +12,17 @@ var BlueGradient = []string{
 }
 
 var (
-	TitleStyle       = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("63"))
-	SelectedStyle    = lipgloss.NewStyle().Background(lipgloss.Color("205")).Foreground(lipgloss.Color("255"))
-	CursorStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-	PlaceholderStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-	HelpStyle        = lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("241"))
-	ErrorStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("196"))
-	InputStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("229"))
-	PromptStyle      = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("159"))
+	TitleStyle       = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#5f5fff"))
+	SelectedStyle    = lipgloss.NewStyle().Background(lipgloss.Color("#ff5faf")).Foreground(lipgloss.Color("#eeeeee"))
+	CursorStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5faf"))
+	PlaceholderStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262"))
+	HelpStyle        = lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#626262"))
+	ErrorStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000"))
+	InputStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("#add8e6"))
+	PromptStyle      = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#afffff"))
 	AppStyle         = lipgloss.NewStyle().
-				Padding(0, 2).
-				Width(30).Height(3).
+				Padding(0, 1).
+				Width(20).Height(2).
 				Align(lipgloss.Center).
 				BorderStyle(lipgloss.RoundedBorder()).
 				BorderForeground(lipgloss.Color("#3c71a8"))
