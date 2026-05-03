@@ -12,8 +12,10 @@ var BlueGradient = []string{
 }
 
 var (
-	TitleStyle       = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#5f5fff"))
-	SelectedStyle    = lipgloss.NewStyle().Background(lipgloss.Color("#ff5faf")).Foreground(lipgloss.Color("#eeeeee"))
+	TitleStyle    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#5f5fff"))
+	SelectedStyle = lipgloss.NewStyle().Background(lipgloss.Color("#ff5faf")).Foreground(lipgloss.Color("#eeeeee"))
+	// TODO: rename and restyle
+	UsernameStyle    = lipgloss.NewStyle().Bold(true).Italic(true).Foreground(lipgloss.Color("#ba99e3"))
 	CursorStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5faf"))
 	PlaceholderStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262"))
 	HelpStyle        = lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#626262"))
