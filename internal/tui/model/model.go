@@ -49,7 +49,7 @@ type tuiModel struct {
 	width  int
 	height int
 
-	config *config.Config
+	gatorCfg *config.Config
 }
 
 func (m tuiModel) Init() tea.Cmd {
@@ -110,6 +110,10 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.resultMsg = msg.text
 		m.resultErr = msg.err
 		m.view = "result"
+		// TODO: handle error
+		if cfg, err := config.Read(); err == nil {
+			m.gatorCfg = &cfg
+		}
 		return m, tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg { return resultColorMsg{} })
 	case resultColorMsg:
 		m.resultColorIdx = (m.resultColorIdx + 1) % len(styles.BlueGradient)
@@ -158,7 +162,9 @@ func (m tuiModel) menuView() tea.View {
 	}
 	b.WriteString(lipgloss.NewStyle().PaddingLeft(1).Render(lipgloss.JoinVertical(lipgloss.Left, items...)))
 	b.WriteString("\n\n")
-	b.WriteString(styles.HelpStyle.Render("enter select - q quit"))
+	b.WriteString(styles.UsernameStyle.Render(m.gatorCfg.CurrentUserName))
+	// b.WriteString("\n")
+	// b.WriteString(styles.HelpStyle.Render("enter select - q quit"))
 	return tea.NewView(lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, b.String()))
 }
 
@@ -199,7 +205,7 @@ func RunTUI(cfg *config.Config) {
 	m := tuiModel{
 		cmdsList: allCommands(),
 		view:     "menu",
-		config:   cfg,
+		gatorCfg: cfg,
 	}
 	p := tea.NewProgram(m)
 	if _, err := p.Run(); err != nil {
