@@ -8,15 +8,13 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
+	"github.com/rigofekete/gator/internal/app"
+	"github.com/rigofekete/gator/internal/cmd"
 	"github.com/rigofekete/gator/internal/config"
 	"github.com/rigofekete/gator/internal/database"
+	"github.com/rigofekete/gator/internal/handlers"
 	"github.com/rigofekete/gator/internal/tui/model"
 )
-
-type state struct {
-	db  *database.Queries
-	cfg *config.Config
-}
 
 func main() {
 	cfg, err := config.Read()
@@ -31,26 +29,26 @@ func main() {
 	defer db.Close()
 	dbQueries := database.New(db)
 
-	newState := &state{
-		db:  dbQueries,
-		cfg: &cfg,
+	newState := &app.State{
+		DB:  dbQueries,
+		Cfg: &cfg,
 	}
 
-	cmds := commands{
-		registeredCommands: map[string]func(*state, command) error{},
+	cmds := cmd.Commands{
+		RegisteredCommands: map[string]func(*app.State, cmd.Command) error{},
 	}
 
-	cmds.register("login", handlerLogin)
-	cmds.register("register", handlerRegister)
-	cmds.register("reset", handlerReset)
-	cmds.register("users", handlerListUsers)
-	cmds.register("agg", handlerAgg)
-	cmds.register("addfeed", middlewareLoggedIn(handlerAddFeed))
-	cmds.register("follow", middlewareLoggedIn(handlerFollowFeed))
-	cmds.register("unfollow", middlewareLoggedIn(handlerUnfollowFeed))
-	cmds.register("following", middlewareLoggedIn(handlerFollowing))
-	cmds.register("browse", middlewareLoggedIn(handlerBrowsePosts))
-	cmds.register("feeds", handlerGetFeeds)
+	cmds.Register("login", handlers.HandlerLogin)
+	cmds.Register("register", handlers.HandlerRegister)
+	cmds.Register("reset", handlers.HandlerReset)
+	cmds.Register("users", handlers.HandlerListUsers)
+	cmds.Register("agg", handlers.HandlerAgg)
+	cmds.Register("addfeed", middlewareLoggedIn(handlers.HandlerAddFeed))
+	cmds.Register("follow", middlewareLoggedIn(handlers.HandlerFollowFeed))
+	cmds.Register("unfollow", middlewareLoggedIn(handlers.HandlerUnfollowFeed))
+	cmds.Register("following", middlewareLoggedIn(handlers.HandlerFollowing))
+	cmds.Register("browse", middlewareLoggedIn(handlers.HandlerBrowsePosts))
+	cmds.Register("feeds", handlers.HandlerGetFeeds)
 
 	if len(os.Args) >= 2 && os.Args[1] == "--tui" {
 		model.RunTUI()
@@ -60,7 +58,7 @@ func main() {
 	if len(os.Args) >= 3 && os.Args[1] == "--exec" {
 		cmdName := os.Args[2]
 		cmdArgs := os.Args[3:]
-		err := cmds.run(newState, command{Name: cmdName, Args: cmdArgs})
+		err := cmds.Run(newState, cmd.Command{Name: cmdName, Args: cmdArgs})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %v", err)
 			os.Exit(1)
@@ -91,15 +89,15 @@ func main() {
 	cmdName := os.Args[1]
 	cmdArgs := os.Args[2:]
 
-	err = cmds.run(newState, command{Name: cmdName, Args: cmdArgs})
+	err = cmds.Run(newState, cmd.Command{Name: cmdName, Args: cmdArgs})
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func middlewareLoggedIn(handler func(*state, command, database.User) error) func(*state, command) error {
-	return func(s *state, cmd command) error {
-		user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+func middlewareLoggedIn(handler func(*app.State, cmd.Command, database.User) error) func(*app.State, cmd.Command) error {
+	return func(s *app.State, cmd cmd.Command) error {
+		user, err := s.DB.GetUser(context.Background(), s.Cfg.CurrentUserName)
 		if err != nil {
 			return fmt.Errorf("user not found: %w", err)
 		}
