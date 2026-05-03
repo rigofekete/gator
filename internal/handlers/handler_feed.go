@@ -76,9 +76,8 @@ func HandlerAddFeed(s *app.State, cmd cmd.Command, user database.User) error {
 
 	fmt.Println("\nNew feed added: ")
 	printFeed(feed, user)
-	fmt.Println("====================================================")
+	fmt.Println("")
 	printFeedFollow(feedFollow.UserName, feedFollow.FeedName)
-	fmt.Println("====================================================")
 
 	return nil
 }
@@ -109,7 +108,6 @@ func HandlerFollowFeed(s *app.State, cmd cmd.Command, user database.User) error 
 
 	fmt.Println("Feed created:")
 	printFeedFollow(feedFollow.UserName, feedFollow.FeedName)
-	fmt.Println("======================")
 
 	return nil
 }
@@ -137,7 +135,6 @@ func HandlerUnfollowFeed(s *app.State, cmd cmd.Command, user database.User) erro
 	}
 
 	fmt.Printf("%s deleted and unfollowed successfully\n", feed.Name)
-	fmt.Println("======================")
 
 	return nil
 }
@@ -157,11 +154,10 @@ func HandlerFollowing(s *app.State, cmd cmd.Command, user database.User) error {
 		return nil
 	}
 
-	fmt.Println("Following: ")
+	fmt.Println("Following: \n")
 	for _, follow := range follows {
 		fmt.Println(follow.FeedName)
 	}
-	fmt.Println("======================")
 
 	return nil
 }
