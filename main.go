@@ -1,16 +1,16 @@
 package main
 
 import (
+	"context"
+	"database/sql"
+	"fmt"
 	"log"
 	"os"
-	"database/sql"
-	"context"
-	"fmt"
 
-
+	_ "github.com/lib/pq"
 	"github.com/rigofekete/gator/internal/config"
 	"github.com/rigofekete/gator/internal/database"
-	_ "github.com/lib/pq"
+	"github.com/rigofekete/gator/internal/tui/model"
 )
 
 type state struct {
@@ -26,14 +26,13 @@ func main() {
 
 	db, err := sql.Open("postgres", cfg.DBURL)
 	if err != nil {
-		log.Fatalf("error opening SQL database. Error: %v", err) 
+		log.Fatalf("error opening SQL database. Error: %v", err)
 	}
 	defer db.Close()
 	dbQueries := database.New(db)
 
-
 	newState := &state{
-		db: dbQueries,
+		db:  dbQueries,
 		cfg: &cfg,
 	}
 
@@ -53,13 +52,44 @@ func main() {
 	cmds.register("browse", middlewareLoggedIn(handlerBrowsePosts))
 	cmds.register("feeds", handlerGetFeeds)
 
+	if len(os.Args) >= 2 && os.Args[1] == "--tui" {
+		model.RunTUI()
+		return
+	}
+
+	if len(os.Args) >= 3 && os.Args[1] == "--exec" {
+		cmdName := os.Args[2]
+		cmdArgs := os.Args[3:]
+		err := cmds.run(newState, command{Name: cmdName, Args: cmdArgs})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v", err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	if len(os.Args) < 2 {
-		log.Fatalf("\nat least a command name arg is needed")
+		fmt.Printf("usage: gator <command> [args]\n       gator --tui\n\n")
+		fmt.Println("commands:")
+		fmt.Println("  register <name>")
+		fmt.Println("  login <name>")
+		fmt.Println("  reset")
+		fmt.Println("  users")
+		fmt.Println("  addfeed <name> <url>")
+		fmt.Println("  follow <url>")
+		fmt.Println("  unfollow <url>")
+		fmt.Println("  following")
+		fmt.Println("  browse [limit]")
+		fmt.Println("  agg <duration>")
+		fmt.Println("  feeds")
+		fmt.Println("")
+		fmt.Println("  --tui    launch the interactive TUI")
+		fmt.Println("")
+		return
 	}
 
 	cmdName := os.Args[1]
-	cmdArgs := os.Args[2:] 
-	
+	cmdArgs := os.Args[2:]
 
 	err = cmds.run(newState, command{Name: cmdName, Args: cmdArgs})
 	if err != nil {
@@ -67,8 +97,7 @@ func main() {
 	}
 }
 
-
-func middlewareLoggedIn(handler func(*state, command, database.User) error) func(*state, command) error {	
+func middlewareLoggedIn(handler func(*state, command, database.User) error) func(*state, command) error {
 	return func(s *state, cmd command) error {
 		user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
 		if err != nil {
@@ -77,7 +106,4 @@ func middlewareLoggedIn(handler func(*state, command, database.User) error) func
 
 		return handler(s, cmd, user)
 	}
-
 }
-
-
