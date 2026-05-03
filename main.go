@@ -51,7 +51,7 @@ func main() {
 	cmds.Register("feeds", handlers.HandlerGetFeeds)
 
 	if len(os.Args) >= 2 && os.Args[1] == "--tui" {
-		model.RunTUI()
+		model.RunTUI(&cfg)
 		return
 	}
 
