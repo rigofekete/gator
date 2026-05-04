@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"charm.land/bubbles/v2/spinner"
+	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/charmbracelet/glamour"
 	"github.com/rigofekete/gator/internal/config"
-	"github.com/rigofekete/gator/internal/tui/styles"
+	tuistyles "github.com/rigofekete/gator/internal/tui/styles"
 )
 
 type tuiCmd struct {
@@ -26,10 +28,10 @@ func allCommands() []tuiCmd {
 		{name: "register", label: "Register a new user", args: []string{"Username"}},
 		{name: "login", label: "Login user", args: []string{"Username"}},
 		{name: "addfeed", label: "Add a new feed", args: []string{"Feed name", "Feed URL"}},
-		{name: "agg", label: "Aggregate feeds (continuous loop)", args: []string{"Poll interval (e.g., 30s)"}},
-		{name: "browse", label: "Browse posts from followed feeds", args: []string{"Number of posts (optional)"}},
+		{name: "agg", label: "Aggregate feeds", args: []string{"Poll interval (e.g., 30s)"}},
+		{name: "browse", label: "Browse posts", args: []string{"Number of posts"}},
 		{name: "users", label: "List all users"},
-		{name: "feeds", label: "List all system feeds"},
+		{name: "feeds", label: "List all feeds"},
 		{name: "following", label: "View your followed feeds"},
 	}
 }
@@ -42,6 +44,26 @@ type resultMsg struct {
 type resultColorMsg struct{}
 
 type loadingColorMsg struct{}
+
+func parsePosts(raw string) string {
+	lines := strings.Split(raw, "\n")
+	var md strings.Builder
+	for _, line := range lines {
+		line = strings.TrimLeft(line, " \t")
+		if strings.HasPrefix(line, "Found ") {
+			md.WriteString(fmt.Sprintf("# %s\n\n", line))
+		} else if strings.HasPrefix(line, "--- ") && strings.HasSuffix(line, " ---") {
+			title := strings.TrimPrefix(line, "--- ")
+			title = strings.TrimSuffix(title, " ---")
+			md.WriteString(fmt.Sprintf("## %s\n\n", title))
+		} else if strings.TrimSpace(line) != "" {
+			md.WriteString(line + "\n")
+		} else {
+			md.WriteString("\n")
+		}
+	}
+	return md.String()
+}
 
 type tuiModel struct {
 	cursor   int
@@ -64,6 +86,8 @@ type tuiModel struct {
 	loadingColorIdx int
 	cancel          context.CancelFunc
 	spinner         spinner.Model
+
+	viewport viewport.Model
 }
 
 func (m tuiModel) Init() tea.Cmd {
@@ -137,6 +161,16 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "result":
 			m.view = "menu"
 			m.selected = nil
+		case "posts":
+			switch msg.String() {
+			case "q", "esc":
+				m.view = "menu"
+				m.selected = nil
+				return m, nil
+			}
+			var cmd tea.Cmd
+			m.viewport, cmd = m.viewport.Update(msg)
+			return m, cmd
 		case "loading":
 			switch msg.String() {
 			case "q", "ctrl+c":
@@ -166,7 +200,7 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case loadingColorMsg:
 		if m.view == "loading" {
-			m.loadingColorIdx = (m.loadingColorIdx + 1) % len(styles.BlueGradient)
+			m.loadingColorIdx = (m.loadingColorIdx + 1) % len(tuistyles.BlueGradient)
 			return m, tea.Tick(60*time.Millisecond, func(t time.Time) tea.Msg { return loadingColorMsg{} })
 		}
 	case resultMsg:
@@ -176,22 +210,40 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.resultColorIdx = 0
 		m.resultMsg = msg.text
 		m.resultErr = msg.err
-		m.view = "result"
 		m.cancel = nil
-		// TODO: handle error
+
+		if m.selected != nil && m.selected.name == "browse" && !msg.err {
+			r, _ := glamour.NewTermRenderer(
+				glamour.WithStandardStyle("dark"),
+				glamour.WithWordWrap(m.width-2),
+			)
+			rendered, _ := r.Render(parsePosts(msg.text))
+			m.viewport = viewport.New(
+				viewport.WithWidth(m.width),
+				viewport.WithHeight(m.height),
+			)
+			m.viewport.SetContent(rendered)
+			m.view = "posts"
+			return m, nil
+		}
+
+		m.view = "result"
 		if cfg, err := config.Read(); err == nil {
 			m.gatorCfg = &cfg
 		}
 		return m, tea.Tick(60*time.Millisecond, func(t time.Time) tea.Msg { return resultColorMsg{} })
 	case resultColorMsg:
-		// m.resultColorIdx = (m.resultColorIdx + 1) % len(styles.BlueGradient)
-		if m.resultColorIdx < len(styles.BlueGradient)-1 {
+		if m.resultColorIdx < len(tuistyles.BlueGradient)-1 {
 			m.resultColorIdx++
 			return m, tea.Tick(60*time.Millisecond, func(t time.Time) tea.Msg { return resultColorMsg{} })
 		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		if m.view == "posts" {
+			m.viewport.SetWidth(msg.Width)
+			m.viewport.SetHeight(msg.Height)
+		}
 	}
 	return m, nil
 }
@@ -216,6 +268,8 @@ func (m tuiModel) View() tea.View {
 		return m.resultView()
 	case "loading":
 		return m.loadingView()
+	case "posts":
+		return m.postsView()
 	default:
 		return m.menuView()
 	}
@@ -223,38 +277,38 @@ func (m tuiModel) View() tea.View {
 
 func (m tuiModel) menuView() tea.View {
 	var b strings.Builder
-	b.WriteString(styles.TitleStyle.Render(styles.TitleASCII))
+	b.WriteString(tuistyles.TitleStyle.Render(tuistyles.TitleASCII))
 	b.WriteString("\n\n")
 	var items []string
 	for i, cmd := range m.cmdsList {
 		if m.cursor == i {
-			items = append(items, styles.SelectedStyle.Render(" "+cmd.label+" "))
+			items = append(items, tuistyles.SelectedStyle.Render(" "+cmd.label+" "))
 		} else {
 			items = append(items, " "+cmd.label+" ")
 		}
 	}
 	b.WriteString(lipgloss.NewStyle().PaddingLeft(1).Render(lipgloss.JoinVertical(lipgloss.Left, items...)))
 	b.WriteString("\n\n")
-	b.WriteString(styles.UsernameStyle.Render(m.gatorCfg.CurrentUserName))
+	b.WriteString(tuistyles.UsernameStyle.Render(m.gatorCfg.CurrentUserName))
 	return tea.NewView(lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, b.String()))
 }
 
 func (m tuiModel) inputView() tea.View {
 	var b strings.Builder
 	b.WriteString("\n\n")
-	b.WriteString(styles.CursorStyle.Render(m.selected.args[len(m.collected)]) + "\n")
+	b.WriteString(tuistyles.CursorStyle.Render(m.selected.args[len(m.collected)]) + "\n")
 
 	currentArg := m.selected.args[len(m.collected)]
-	borderStyle := styles.InputBorderStyle
+	borderStyle := tuistyles.InputBorderStyle
 	if strings.Contains(currentArg, "URL") {
-		borderStyle = styles.WideInputBorderStyle
+		borderStyle = tuistyles.WideInputBorderStyle
 	}
 
 	var inputText string
 	if m.inputBuf == "" {
-		inputText = borderStyle.Render(styles.PlaceholderStyle.Render(currentArg))
+		inputText = borderStyle.Render(tuistyles.PlaceholderStyle.Render(currentArg))
 	} else {
-		inputText = borderStyle.Render(styles.InputStyle.Render(m.inputBuf))
+		inputText = borderStyle.Render(tuistyles.InputStyle.Render(m.inputBuf))
 	}
 	b.WriteString(fmt.Sprintf("%s\n\n", inputText))
 	return tea.NewView(lipgloss.Place(m.width, m.height,
@@ -263,17 +317,17 @@ func (m tuiModel) inputView() tea.View {
 
 func (m tuiModel) resultView() tea.View {
 	var b strings.Builder
-	blue := lipgloss.Color(styles.BlueGradient[m.resultColorIdx])
+	blue := lipgloss.Color(tuistyles.BlueGradient[m.resultColorIdx])
 	msgStyle := lipgloss.NewStyle().Foreground(blue).Bold(true)
 
 	b.WriteString("\n\n")
 	if m.resultErr {
-		b.WriteString(styles.ErrorStyle.Render(m.resultMsg))
+		b.WriteString(tuistyles.ErrorStyle.Render(m.resultMsg))
 	} else {
 		b.WriteString(msgStyle.Render(m.resultMsg))
 	}
 	b.WriteString("\n\n")
-	b.WriteString(styles.HelpStyle.Render("press any key to continue"))
+	b.WriteString(tuistyles.HelpStyle.Render("press any key to continue"))
 	return tea.NewView(lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, b.String()))
 }
 
@@ -286,11 +340,17 @@ func (m tuiModel) loadingView() tea.View {
 		msg = "Aggregating feeds..."
 	}
 
-	blue := lipgloss.Color(styles.BlueGradient[m.loadingColorIdx])
+	blue := lipgloss.Color(tuistyles.BlueGradient[m.loadingColorIdx])
 	msgStyle := lipgloss.NewStyle().Foreground(blue).Bold(true)
 	b.WriteString(fmt.Sprintf("%s %s\n\n", m.spinner.View(), msgStyle.Render(msg)))
-	b.WriteString(styles.HelpStyle.Render("press any key to stop"))
+	b.WriteString(tuistyles.HelpStyle.Render("press any key to stop"))
 	return tea.NewView(lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, b.String()))
+}
+
+func (m tuiModel) postsView() tea.View {
+	m.viewport.SetWidth(m.width)
+	m.viewport.SetHeight(m.height)
+	return tea.NewView(m.viewport.View())
 }
 
 func RunTUI(cfg *config.Config) {
