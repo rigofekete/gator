@@ -11,14 +11,6 @@ gator is a Go CLI that aggregates RSS feeds into a PostgreSQL database. It suppo
 - Bubble Tea (terminal UI framework)
 - Glamour (terminal markdown renderer)
 
-## Terminal UI
-
-gator now includes an interactive terminal UI built with [Bubble Tea](https://github.com/charmbracelet/bubbletea). Run `gator tui` to launch a full-screen menu for managing users, feeds, and browsing posts — all with keyboard navigation, animated loading states, and markdown-rendered post content.
-
-![gator TUI menu](docs/assets/menu.png)
-
-![gator TUI demo](docs/assets/demo.gif)
-
 ## Requirements
 
 - Go 1.21+
@@ -33,6 +25,9 @@ go install .
 ```
 
 > **Note:** With `go install` the binary (`gator`) becomes globally available, you can run it from anywhere in the terminal by name.
+
+<img width="800" alt="gator TUI menu" src="docs/assets/menu.png" />
+<img width="800" alt="gator TUI demo" src="docs/assets/demo.gif" />
 
 ## Database Setup
 
