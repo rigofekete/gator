@@ -1,6 +1,6 @@
-# gator – RSS Feed Aggregator (CLI)
+# gator – RSS Feed Aggregator
 
-gator is a Go CLI that aggregates RSS feeds into a PostgreSQL database. It supports managing users, subscribing to feeds, fetching posts, and resetting state for clean testing.
+gator is a Go tool that aggregates RSS feeds into a PostgreSQL database. It supports managing users, subscribing to feeds, fetching posts, and resetting state for clean testing.
 
 ## Tools and Dependencies
 
@@ -85,6 +85,11 @@ gator --tui
 
 <img width="800" alt="gator TUI menu" src="docs/assets/menu.png" />
 <br>
+
+## Demo
+
+
+<video src="https://github.com/user-attachments/assets/57e6caa2-57d3-4f9e-9fdf-051da430daad" width="400" controls></video>
 
 ### CLI Commands
 
