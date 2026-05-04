@@ -26,9 +26,6 @@ go install .
 
 > **Note:** With `go install` the binary (`gator`) becomes globally available, you can run it from anywhere in the terminal by name.
 
-<img width="800" alt="gator TUI menu" src="docs/assets/menu.png" />
-<img width="800" alt="gator TUI demo" src="docs/assets/demo.gif" />
-
 ## Database Setup
 
 You need a running PostgreSQL instance and an empty database. The app manages tables/migrations, not database creations.
@@ -78,13 +75,20 @@ gator reset
 
 ## Usage
 
-Launch the interactive TUI:
+### Interactive TUI
+
+Launch the interactive terminal UI for visual menu-driven interaction:
 
 ```bash
 gator --tui
 ```
 
-Or use individual CLI commands:
+<img width="800" alt="gator TUI menu" src="docs/assets/menu.png" />
+<br>
+
+### CLI Commands
+
+Alternatively, use the individual CLI commands:
 
 Create a user:
 
