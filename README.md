@@ -2,6 +2,8 @@
 
 gator is a Go tool that aggregates RSS feeds into a PostgreSQL database. It supports managing users, subscribing to feeds, fetching posts, and resetting state for clean testing.
 
+<img alt="gator TUI video" src="docs/assets/gator-gif.gif" />
+
 ## Tools and Dependencies
 
 - Go
@@ -89,7 +91,7 @@ gator --tui
 ## Demo
 
 
-<video src="https://github.com/user-attachments/assets/57e6caa2-57d3-4f9e-9fdf-051da430daad" width="400" controls></video>
+<img alt="gator TUI video" src="docs/assets/gator-demo.gif" />
 
 ### CLI Commands
 
